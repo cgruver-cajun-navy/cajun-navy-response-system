@@ -236,3 +236,108 @@ A `Disaster` has the following entities:
 
 1. TBD
 
+## Install
+
+Install subctl
+
+```bash
+curl -Ls https://get.submariner.io | DESTDIR=${OPENSHIFT_LAB_PATH}/bin VERSION=v0.18.0 bash
+```
+
+Prepare Nodes:
+
+```bash
+labctx control-plane
+for node in $(oc --kubeconfig ${KUBE_INIT_CONFIG} get nodes -o name -l node-role.kubernetes.io/worker="")
+do
+  oc --kubeconfig ${KUBE_INIT_CONFIG} label ${node} submariner.io/gateway=true --overwrite
+  oc --kubeconfig ${KUBE_INIT_CONFIG} annotate ${node} gateway.submariner.io/public-ip=dns:$(echo ${node} | cut -d "/" -f2).${DOMAIN} --overwrite
+done
+
+for region in region-01 region-02 region-03
+do
+  labctx ${region}
+  for node in $(oc --kubeconfig ${KUBE_INIT_CONFIG} get nodes -o name -l node-role.kubernetes.io/worker="")
+  do
+    oc --kubeconfig ${KUBE_INIT_CONFIG} label ${node} submariner.io/gateway=true --overwrite
+    oc --kubeconfig ${KUBE_INIT_CONFIG} annotate ${node} gateway.submariner.io/public-ip=dns:$(echo ${node} | cut -d "/" -f2).${DOMAIN} --overwrite
+  done
+done
+```
+
+Install Submariner:
+
+```bash
+labctx control-plane
+subctl deploy-broker --kubeconfig ${KUBE_INIT_CONFIG} --globalnet=false
+mv broker-info.subm ${OPENSHIFT_LAB_PATH}/lab-config/broker-info.subm
+
+for i in control-plane region-01 region-02 region-03
+do
+  labctx ${i}
+  subctl join ${OPENSHIFT_LAB_PATH}/lab-config/broker-info.subm --kubeconfig ${KUBE_INIT_CONFIG} --natt=false --cable-driver libreswan --globalnet=false
+done
+```
+
+Uninstall Submariner:
+
+```bash
+for i in control-plane region-01 region-02 region-03
+do
+  labctx ${i}
+  subctl uninstall --kubeconfig ${KUBE_INIT_CONFIG} --yes
+done
+```
+
+## Notes
+
+```bash
+subctl show all --kubeconfig ${KUBE_INIT_CONFIG}
+subctl diagnose all --kubeconfig ${KUBE_INIT_CONFIG}
+subctl diagnose firewall inter-cluster ${OPENSHIFT_LAB_PATH}/lab-config/okd4-region-01-dc1-${LAB_DOMAIN}/kubeconfig ${OPENSHIFT_LAB_PATH}/lab-config/okd4-region-02-dc2-${LAB_DOMAIN}/kubeconfig
+
+oc patch pod ${POD} --type json -p '[{"op": "replace", "path": "/spec/containers/0/image", "value": "${PROXY_REGISTRY}/submariner/nettest:0.12.0"}]'
+
+quay.io/submariner/nettest:devel
+```
+
+## K8ssandra Install
+
+### Install Cert Manager
+
+```bash
+cat << EOF | oc apply -f -
+apiVersion: v1                      
+kind: Namespace                 
+metadata:
+  name: cert-manager-operator
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-cert-manager-operator
+  namespace: cert-manager-operator
+spec:
+  targetNamespaces:
+  - cert-manager-operator
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-cert-manager-operator
+  namespace: cert-manager-operator
+spec:
+  channel: stable-v1
+  name: openshift-cert-manager-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+EOF
+```
+
+```bash
+kustomize build "github.com/k8ssandra/k8ssandra-operator/config/deployments/control-plane?ref=vX.X.X" | kubectl apply --server-side -f -
+
+kustomize build "github.com/k8ssandra/k8ssandra-operator/config/deployments/data-plane?ref=vX.X.X" | kubectl apply --server-side -f -
+
+```
