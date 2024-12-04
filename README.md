@@ -42,7 +42,7 @@ __Question__: What is a place of safety?
 
 __Answer__: A place of safety is a location that mitigates the immediate effects of the disaster.
 
-__Domain Vocabulary__: Let's call the places of safety, `Shelters`.
+__Domain Vocabulary__: Let's call the places of safety `Shelters`.
 
 __Question__: How will we get `Victims` from where they are to a `Shelter`?
 
@@ -56,11 +56,17 @@ __Answer__: `Victims` in close proximity should be handled as a unit of work so 
 
 __Domain Vocabulary__: Let's call the units of work, `Incidents`.
 
-__Question__: How will the `Responders` know what route to take in order to retrieve the `Victims` and move them from an `Incident` to the appropriate `Shelter`?
+__Question__: How will the `Responders` know what `Shelter` they should take to take the `Victims` associated with an `Incident` to?
 
-__Answer__: A `Shelter` will be designated for the `Victims` of a given `Incident`, and a route from the `Incident` to the `Shelter` will be provided to the `Responder`.
+__Answer__: A `Shelter` will be designated for the `Victims` of a given `Incident`, and a link between the `Incident` and the `Shelter` will be provided to the `Responder`.
 
-__Domain Vocabulary__: Let's call the route from `Incident` to `Shelter`, a `Mission`.
+__Domain Vocabulary__: Let's call the link from `Incident` to `Shelter`, a `Mission`.
+
+__Question__: How do we define the area impacted by a `Disaster`?
+
+__Answer__:  The area of impact will be determined by a contiguous geographic zone which encompasses all of the `Victims` and `Shelters` which can be managed by a regional grouping of `Responders`.  It is possible for a single `Disaster` to have multiple, geographically separated impact areas with their own `Shelters`, `Victims`, and `Responders`
+
+__Domain Vocabulary__: Let's call the area of impact an `Impact Zone`
 
 OK...  let's pause for a minute and analyze our domain vocabulary.  So far, we have:
 
@@ -71,21 +77,22 @@ OK...  let's pause for a minute and analyze our domain vocabulary.  So far, we h
 | `Shelter` | A location that mitigates the immediate effects of the disaster |
 | `Responder` | Someone with the appropriate resources and skills to move `Victims` to `Shelters` |
 | `Incident` | A group of one or more `Victims` who are in close proximity to be handled as a unit of work |
-| `Mission` | The route from `Incident` to `Shelter` |
+| `Mission` | The link between `Incident` to `Shelter` |
+| `Impact Zone` | A geographical area with `Shelters` and `Responders` who can help `Victims` within the boundaries of the zone |
 
-The goal of this operation is for `Responders` to move the `Victims` of a `Disaster` from `Incidents` to `Shelters`.
+The goal of this operation is for `Responders` to complete `Missions` which move the `Victims` of a `Disaster` from `Incidents` to `Shelters` within a given `Impact Zone`.
 
 Let's build an app to help realize that goal.
 
-## The Domain Processes
+## The Domain Processes:
 
 1. Register a `Disaster` with at least one `Impact Zone`.
 
-1. Register a `Shelter` associated with a `Disaster`.
+1. Register one or more `Shelters` associated with an `Impact Zone`.
 
-1. A `Victim` registers for assistance.
+1. `Victims` are registered for assistance.
 
-1. A `Responder` indicates their availability to help `Victims`
+1. `Responders` indicate their availability to help `Victims`
 
 1. `Incidents` are created for one or more `Victims` that are in close proximity.
 
