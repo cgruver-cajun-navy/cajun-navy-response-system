@@ -85,7 +85,8 @@ components:
       targetPort: 5005
 - name: cassandra
   container:
-    image: quay.io/cgruver0/che/cassandra-5:latest
+    # image: quay.io/cgruver0/che/cassandra-5:latest
+    image: nexus.clg.lab:5000/dev-spaces/cassandra-5:latest
     sourceMapping: /projects
     memoryRequest: 256Mi
     memoryLimit: 1Gi
@@ -127,56 +128,6 @@ components:
     size: 4Gi
   name: cassandra-data
 commands:
-- exec:
-    commandLine: mvn package
-    component: dev-tools
-    group:
-      isDefault: true
-      kind: build
-    workingDir: '/projects/che-demo-app-service'
-  id: package
-- exec:
-    commandLine: mvn package -Dnative -Dmaven.test.skip -Dquarkus.native.native-image-xmx=2G
-    component: dev-tools
-    group:
-      kind: build
-    label: Package Native
-    workingDir: '/projects/che-demo-app-service'
-  id: package-native
-- exec:
-    commandLine: 'quarkus dev -Dmaven.repo.local=/home/user/.m2/repository -Dquarkus.http.host=0.0.0.0'
-    component: dev-tools
-    hotReloadCapable: true
-    group:
-      isDefault: true
-      kind: run
-    label: Start Quarkus Development mode (Hot reload)
-    workingDir: '/projects/che-demo-app-service'
-  id: quarkus-dev-mode
-- exec:
-    commandLine: '/projects/che-demo-app/setUiEnv.sh -f=/projects/che-demo-app-ui/src/environments/environment.development.ts -s=/projects/che-demo-app-ui/env.dev -c=dev-tools -p=8080 -e=https-quarkus -v=backendApiUrl && npm install && NG_FORCE_TTY=false ng serve --disable-host-check --host 0.0.0.0'
-    component: dev-tools
-    hotReloadCapable: true
-    group:
-      isDefault: true
-      kind: run
-    label: Start NodeJS Development Local Service (Hot reload)
-    workingDir: '/projects/che-demo-app-ui'
-  id: node-dev-mode
-- exec:
-    commandLine: '/projects/che-demo-app/setUiEnvShared.sh -f=/projects/che-demo-app-ui/src/environments/environment.development.ts -s=/projects/che-demo-app-ui/env.dev -v=backendApiUrl && npm install && NG_FORCE_TTY=false ng serve --disable-host-check --host 0.0.0.0'
-    component: dev-tools
-    hotReloadCapable: true
-    group:
-      isDefault: true
-      kind: run
-    label: Start NodeJS Development in Buddy Mode (Hot reload)
-    workingDir: '/projects/che-demo-app-ui'
-  id: node-dev-mode-remote
-- apply:
-    component: oc-cli
-    label: Copy OpenShift CLI
-  id: cp-oc-cli
 - apply:
     component: prep-workspace
     label: Prestart Workspace Prep
